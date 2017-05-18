@@ -16,10 +16,41 @@ public class FlappyScript : MonoBehaviour
     public float VelocityPerJump = 3;
     public float XSpeed = 1;
 
+	void OnEnable()
+	{
+		print("Registering for Adenda Events");
+		AdendaPlugin.OnPreLockscreenStarted += handlePreLockscreenStarted;
+		AdendaPlugin.OnPostLockscreenStarted += handlePostLockscreenStarted;
+		AdendaPlugin.OnPreLockscreenStopped += handlePreLockscreenStopped;
+		AdendaPlugin.OnPostLockscreenStopped += handlePostLockscreenStopped;
+	}
+
+	void OnDisable()
+	{
+		print("Unregistering for Adenda Events");
+		AdendaPlugin.OnPreLockscreenStarted -= handlePreLockscreenStarted;
+		AdendaPlugin.OnPostLockscreenStarted -= handlePostLockscreenStarted;
+		AdendaPlugin.OnPreLockscreenStopped -= handlePreLockscreenStopped;
+		AdendaPlugin.OnPostLockscreenStopped -= handlePostLockscreenStopped;
+	}
+
     // Use this for initialization
     void Start()
     {
+		AdendaPlugin.setUnlockType(AdendaPlugin.UNLOCK_TYPE_SLIDE);
+		// ADENDA: Disable ads
+		AdendaPlugin.setEnableAds(false);
 
+		// Opt the user IN
+		string sUserId = SystemInfo.deviceUniqueIdentifier;
+		Debug.Log("USERID: " + sUserId);
+		print("USERID: " + sUserId);
+
+		if (!AdendaPlugin.isOptedIn())
+			AdendaPlugin.startAdendaLockscreen(sUserId, "m", "19900102", false);
+
+		if (AdendaPlugin.getNumberCustomEntries() <= 0)
+			AdendaPlugin.addUnityFragment(null, "Unity!", true, false, "Flappy", "startOnLockScreen", "");
     }
 
     FlappyYAxisTravelState flappyYAxisTravelState;
@@ -31,6 +62,13 @@ public class FlappyScript : MonoBehaviour
 
     Vector3 birdRotation = Vector3.zero;
     // Update is called once per frame
+
+	void startOnLockScreen(string unused)
+	{
+		GameStateManager.GameState = GameState.Intro;
+		Application.LoadLevel(Application.loadedLevelName);
+	}
+
     void Update()
     {
         //handle back key in Windows Phone
@@ -183,4 +221,24 @@ public class FlappyScript : MonoBehaviour
         GetComponent<AudioSource>().PlayOneShot(DeathAudioClip);
     }
 
+	// ADENDA Callbacks
+	public void handlePreLockscreenStarted()
+	{
+		print("Handling onPreLockscreenStarted!");
+	}
+
+	public void handlePostLockscreenStarted()
+	{
+		print("Handling onPostLockscreenStarted!");
+	}
+
+	public void handlePreLockscreenStopped()
+	{
+		print("Handling onPreLockscreenStopped!");
+	}
+
+	public void handlePostLockscreenStopped()
+	{
+		print("Handling onPostLockscreenStopped!");
+	}
 }
